@@ -1,16 +1,15 @@
 import numpy as np
 import cv2
 import glob
-fileDir = "ImageDatabase/"
+fileDir = "PIV_20_21_TL1_imagens_treino/"
 LENGTH_IMGS = 9
 #fileName = "lily-lotus-flowers.jpg"
 titles = [f"image {i}"for i in range (9)]
-images = [cv2.imread(file) for file in glob.glob("TP1\PIV_20_21_TL1_imagens_treino/*.jpg")]
+images = [cv2.imread(file) for file in glob.glob("PIV_20_21_TL1_imagens_treino/*.jpg")]
 imagesGrey = [cv2.cvtColor(i,cv2.COLOR_BGR2GRAY) for i in images] #images greyscale
-imagesBin = [cv2.threshold(i,127,255,cv2.THRESH_OTSU)[0] for i in imagesGrey] # informacao das imagens
-thresh = [cv2.threshold(i,127,255,cv2.THRESH_OTSU)[1] for i in imagesGrey] #images BLACK AND WHITE com threshold otsu
-contours = [ cv2.findContours(i, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[0] for i in thresh] #contours
-hierarchy  = [ cv2.findContours(i, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[1] for i in thresh] #hierarchy
+imagesBin , thresh = zip(*[cv2.threshold(i,127,255,cv2.THRESH_OTSU) for i in imagesGrey])
+
+contours, hierarchy = zip(*[cv2.findContours(i, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) for i in thresh]) #contours
 
 #kernel matriz 3x3 rectangular
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(3,3))

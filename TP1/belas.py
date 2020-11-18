@@ -23,10 +23,13 @@ canny=cv.Canny(blur,70,200)
 
 
 thres = cv.adaptiveThreshold(canny, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 1)
-
 ##print(thres)
 
-cv.imshow("BW Image",thres)
+cv.imshow("Thresh",thres)
+cv.waitKey(0)
+cv.destroyAllWindows()
+
+
 
 ##regionNum, lb=cv.connectedComponents(bw)
 strElem=cv.getStructuringElement(cv.MORPH_ELLIPSE,(2,2))
@@ -36,9 +39,12 @@ cv.imshow("BW1Image",bw1)
 ##bw2=cv.erode(bw,strElem)
 ##cv.imshow('BW Morph Image 1',bw1)
 ##cv.imshow('BW Morph Image 2',bw2)
+
 cont,h=cv.findContours(bw1,cv.RETR_TREE,cv.CHAIN_APPROX_SIMPLE)
 ##print(len(cont))
+
 teste=cv.cvtColor(bw1, cv.COLOR_GRAY2BGR)
+
 ##for c in range(len(cont)):
 ##    areat=cv.contourArea(cont[c])
 ##    if areat<5000:
