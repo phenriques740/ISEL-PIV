@@ -52,7 +52,7 @@ teste=cv.cvtColor(bw1, cv.COLOR_GRAY2BGR)
 contornos=[]
 for c in range(len(cont)):
     
-    circulo=4 * math.pi * (cv.contourArea(cont[c]) / cv.arcLength(cont[c], True)**2)
+    circulo= 4 * math.pi * (cv.contourArea(cont[c]) / cv.arcLength(cont[c], True)**2)
     if circulo >= 0.7 and circulo <= 1 and h[0][c][2] == -1:
         contornos.append(c)
         print("c: ",c)
