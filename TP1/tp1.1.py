@@ -11,16 +11,15 @@ class CoinCounter:
         self.imageName = name
         self.imageOriginal = cv.imread(imagePath)
         self.__workingImage = cv.cvtColor(self.imageOriginal, cv.COLOR_BGR2GRAY)
-        self.__imageCircles = cv.cvtColor(self.imageOriginal, cv.COLOR_BGR2GRAY)
+        self.__imageCounted = self.imageOriginal.copy()
        # self.__workingImage =self.imageOriginal
-        self.__preProcessed = False           
+        
         self.__edges = np.array([])
         self.__thresh = np.array([])
         self.__contours = np.array([])
         self.__circles = np.array([])
         self.__correctContours = []
         
-
         self.valores = {
                 1 : (6000,11000),
                 2 : (11000,14500),
@@ -31,6 +30,8 @@ class CoinCounter:
                 100 : (19600,21500) ,
                 200 : (25000,30000)
             }
+        
+        self.__total = 0
         
     def __showImage(self, image, title):
         win_title= f'{self.imageName} {title}'
@@ -52,26 +53,28 @@ class CoinCounter:
     def showThresholds(self,text='edges'):
         return self.__showImage(self.__thresh, text)
         
-   
+    def showOutput(self,text='output'):
+        return self.__showImage(self.__imageCounted, text)
     '''
     Faz um re-dimensionamento (se aplicavel) e aplica filtros para obter melhores resultado
     '''
     def preProcessImage(self,resize=False):
-        w, h, a = self.imageOriginal.shape
-        
         blur = []
         if(resize):
+            w, h, a = self.imageOriginal.shape
             img= cv.resize(self.__workingImage, (int(h/2), int(w/2)))
             blur=cv.GaussianBlur(img,(7,7),0)
         else:     
             blur=cv.GaussianBlur(self.__workingImage,(7,7),0)
            
         
-           
-        
         self.__workingImage = blur
         self.__preProcessed = True
         return self.__preProcessed
+    
+    '''
+    Tendo em conta a imagem anterior, calcula o valor em centimos das moedas presentes
+    '''
     
     def countCoins(self):
         self.__detectEdges()
@@ -87,24 +90,23 @@ class CoinCounter:
                 if (cv.contourArea(i) >= self.valores[j][0] and cv.contourArea(i) <= self.valores[j][1]):
             
                     total += j
-                    print(total)
+                    #print(total)
                     #cv.putText(self.imageOriginal, f"{cv.contourArea(i)}",(cX,cY), cv.FONT_HERSHEY_SIMPLEX , 1, (0,0,255), 2)
-                    cv.putText(self.imageOriginal, f"{j}",(cX,cY), cv.FONT_HERSHEY_SIMPLEX , 1, (0,0,255), 2)
+                    cv.putText(self.__imageCounted, f"{j}",(cX,cY), cv.FONT_HERSHEY_SIMPLEX , 1, (0,0,255), 2)
 
-        cv.putText(self.imageOriginal, f"total: {total}",(50,50), cv.FONT_HERSHEY_SIMPLEX , 1, (0,0,255), 2)
+        self.__total = round(total/100,2)
 
-        
+        cv.putText(self.__imageCounted, f"total: {self.__total} E",(50,50), cv.FONT_HERSHEY_SIMPLEX , 1, (0,0,255), 2)
+        return total
 
 
 
     def __getContourCoords(self):
         
         contours = self.__contours[0]
-        print
         h = self.__contours[1]
-    #    contourPoints = np.array([])
         a=0
-        for cont in range (len(contours)):
+        for cont in range(len(contours)):
            # contours[cont]
             leftmost = (contours[cont][contours[cont][:,:,0].argmin()][0])
             rightmost = (contours[cont][contours[cont][:,:,0].argmax()][0])
@@ -139,21 +141,37 @@ class CoinCounter:
         morph = cv.morphologyEx(self.__thresh,cv.MORPH_CLOSE,strElem,iterations=3) ## ajuda com os objetos que se toquem 3
         self.__contours = cv.findContours(morph,cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
-        
-        
-        
-        print(f'Thresh info\n {self.__thresh.dtype} {self.__thresh.shape}')
-  
+def runAllImages(imagesPaths, showSteps=False, showFinal=True):
+    for idx, img in enumerate(imagesPaths):
+        c = CoinCounter(img, 'img'+str(idx))
+        c.showImageOriginal()
+        c.preProcessImage(False)
+        if(showSteps):
+            c.showImageProcessed('P1')
+            c.countCoins()
+            c.showImageProcessed('Count')
+            c.showThresholds('P2')
+            c.showContors('Contors')
+        else:
+            total = c.countCoins()
+            print(f'Img at {img} com valor {total}')
+        if(showFinal):
+            c.showOutput('Final')
 
-if __name__ == '__main__':
-    fileDir = "TP1/PIV_20_21_TL1_imagens_treino/"
-    imagesPath = glob.glob(f'{fileDir}*.jpg')
+def run1Image(imagePath):
+    cc = CoinCounter(imagePath)
+    cc.showImageOriginal()
+    cc.preProcessImage()
+    cc.showImageProcessed('PreProcessing')
+    print('val' , cc.countCoins())
+    cc.showContors('Contors')
+    cc.showThresholds('Thresholds')
+    cc.showOutput('Output')
     
-    c1 = CoinCounter(imagesPath[7], 'img1')
-    c1.showImageOriginal()
-    c1.preProcessImage(False)
-    c1.showImageProcessed('P1')
-    c1.countCoins()
-    c1.showImageProcessed('Count')
-    c1.showThresholds('P2')
-    c1.showContors('Contors')
+    
+if __name__ == '__main__':
+    fileDir = "PIV_20_21_TL1_imagens_treino/"
+    imagesPaths = glob.glob(f'{fileDir}*.jpg')   
+    
+    #run1Image(imagesPaths[0])
+    runAllImages(imagesPaths)
