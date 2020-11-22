@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 fileDir="PIV_20_21_TL1_imagens_treino/"
-fileName="P1000710s.jpg"
+fileName="P1000698s.jpg"
 imgcoins=cv.imread(fileDir+fileName)
 cv.imshow("coins",imgcoins)
 cv.waitKey(0)
@@ -143,7 +143,7 @@ cv.putText(imgcoins,"Total= "+str(np.round(valor,2)),(100,100),cv.FONT_HERSHEY_S
 ##                cv.drawContours(imgcoins,cont,contador,(0,0,255),thickness=2)            
 ##cv.drawContours(teste,cont,0,(0,0,255),thickness=2)
 
-#cv2.drawContours(self.img, contourSeq, contorno, [0, 255, 0], thickness=2)
+#cv.drawContours(self.img, contourSeq, contorno, [0, 255, 0], thickness=2)
 ##cv.drawContours(teste,cont,26,(0,0,255),thickness=2)
 ##print(cv.contourArea(cont[26]))
 cv.imshow('final',imgcoins)
