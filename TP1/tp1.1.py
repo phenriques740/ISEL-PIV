@@ -75,8 +75,18 @@ class CoinCounter:
     '''
     Tendo em conta a imagem anterior, calcula o valor em centimos das moedas presentes
     '''
+
+    def showBoundingBox(self, boundingBox=True ):
+        for i in   self.__correctContours:
+            if boundingBox:
+                (x,y), r = cv.minEnclosingCircle(i)
+                cv.circle( self.__imageCounted,(int(x),int(y)), int(r), (0,0,255), 2 )
+            else:
+                (x,y,w,h) = cv.boundingRect(i)
+                cv.rectangle(self.__imageCounted, (x,y), (x+w,y+h), (0,0,255), 2)
+
     
-    def countCoins(self):
+    def countCoins(self, boundingBox=True):
         self.__detectEdges()
         self.__getContourCoords()
         total = 0
@@ -85,13 +95,11 @@ class CoinCounter:
             M = cv.moments(i)
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
-          
+
             for j in self.valores:
                 if (cv.contourArea(i) >= self.valores[j][0] and cv.contourArea(i) <= self.valores[j][1]):
             
                     total += j
-                    #print(total)
-                    #cv.putText(self.imageOriginal, f"{cv.contourArea(i)}",(cX,cY), cv.FONT_HERSHEY_SIMPLEX , 1, (0,0,255), 2)
                     cv.putText(self.__imageCounted, f"{j}",(cX,cY), cv.FONT_HERSHEY_SIMPLEX , 1, (0,0,255), 2)
 
         self.__total = round(total/100,2)
@@ -107,29 +115,25 @@ class CoinCounter:
         h = self.__contours[1]
         a=0
         for cont in range(len(contours)):
-           # contours[cont]
+          
             leftmost = (contours[cont][contours[cont][:,:,0].argmin()][0])
             rightmost = (contours[cont][contours[cont][:,:,0].argmax()][0])
             topmost = (contours[cont][contours[cont][:,:,1].argmin()][0])
             bottommost = (contours[cont][contours[cont][:,:,1].argmax()][0])
             points = (leftmost,rightmost,topmost,bottommost)
-            #self.__contourCords[cont] = points
-            #center = (int((leftmost+rightmost)/2),(int((topmost+bottommost)/2))
-        
+            
             centerX = (leftmost[0]+rightmost[0])/2
             centerY = (topmost[1]+bottommost[1])/2
             radius = abs((rightmost[0]-leftmost[0])/2)
             area_circulo = round(np.pi * radius * radius,2) # area do circulo
             area_contour = cv.contourArea(contours[cont])
-          #  cv.putText(self.imageOriginal, f"{c}",( int(centerX),int(centerY)), cv.FONT_HERSHEY_SIMPLEX , 1, (0,0,255), 2) 
+          
 
             if (abs(area_circulo-area_contour)<2000 and h[0][cont][2] == -1  and area_contour>600 ):
                
-              #  cv.putText(self.imageOriginal, f"{area_contour}",( int(centerX),int(centerY)), cv.FONT_HERSHEY_SIMPLEX , 1, (0,0,255), 2)
+              
                 a=a+1
-              #  print("area",area_contour)
-              #  print(a)
-                
+              
                 self.__correctContours.append(contours[cont])
             
     
@@ -148,15 +152,20 @@ def runAllImages(imagesPaths, showSteps=False, showFinal=True):
         c.preProcessImage(False)
         if(showSteps):
             c.showImageProcessed('P1')
+            
             c.countCoins()
             c.showImageProcessed('Count')
             c.showThresholds('P2')
             c.showContors('Contors')
+               
         else:
+            
             total = c.countCoins()
             print(f'Img at {img} com valor {total}')
         if(showFinal):
+            c.showBoundingBox()
             c.showOutput('Final')
+           
 
 def run1Image(imagePath):
     cc = CoinCounter(imagePath)
@@ -170,7 +179,7 @@ def run1Image(imagePath):
     
     
 if __name__ == '__main__':
-    fileDir = "PIV_20_21_TL1_imagens_treino/"
+    fileDir = "TP1/PIV_20_21_TL1_imagens_treino/"
     imagesPaths = glob.glob(f'{fileDir}*.jpg')   
     
     #run1Image(imagesPaths[0])
