@@ -10,10 +10,9 @@ class CoinCounter:
     def __init__(self, imagePath, name='Image'):
         self.imageName = name
         self.imageOriginal = cv.imread(imagePath)
-        self.__workingImage = cv.cvtColor(self.imageOriginal, cv.COLOR_BGR2GRAY)
+       # self.__workingImage = cv.cvtColor(self.imageOriginal, cv.COLOR_BGR2GRAY)
+        self.__workingImage =self.imageOriginal[:,:,2]
         self.__imageCounted = self.imageOriginal.copy()
-       # self.__workingImage =self.imageOriginal
-        
         self.__edges = np.array([])
         self.__thresh = np.array([])
         self.__contours = np.array([])
@@ -32,7 +31,7 @@ class CoinCounter:
             }
         
         self.__total = 0
-        
+
     def __showImage(self, image, title):
         win_title= f'{self.imageName} {title}'
         cv.imshow(win_title, image)
@@ -129,7 +128,7 @@ class CoinCounter:
             area_contour = cv.contourArea(contours[cont])
           
 
-            if (abs(area_circulo-area_contour)<2000 and h[0][cont][2] == -1  and area_contour>600 ):
+            if (abs(area_circulo-area_contour)<2000 and h[0][cont][2] == -1  and area_contour>5999 ):
                
               
                 a=a+1
