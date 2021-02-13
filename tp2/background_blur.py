@@ -12,13 +12,19 @@ cap = cv2.VideoCapture(filePathDuarte)
 ret, frame1 = cap.read()
 ret, frame2 = cap.read()
 
-def processImages(frame1,frame2):
+backgroundSub = cv2.createBackgroundSubtractorMOG2(history = 500, varThreshold = 16, detectShadows = False)
 
-    diff = cv2.absdiff(frame1, frame2)
-    gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
-    blur = cv2.medianBlur(gray, 3)
-    _, thresh = cv2.threshold(blur, 25, 255, cv2.THRESH_BINARY)
+def findBackground(frame2):
+    
+    
+    
+    gray = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+
+    blurm = cv2.medianBlur(gray, 3)
+    blur = cv2.GaussianBlur(blurm,(5,5),0)
+    diff = backgroundSub.apply(blur)
+    _, thresh = cv2.threshold(diff, 25, 255, cv2.THRESH_BINARY)
     
     #kernel = 
     
@@ -29,9 +35,7 @@ def processImages(frame1,frame2):
     #dilated = cv2.dilate(closing, np.ones((2, 2), np.uint8()))
     #erode = cv2.erode(thresh,None, iterations = 1)
     
-    dilated = cv2.dilate(thresh,None, iterations=9)
-
-    return dilated
+    return diff, thresh
 
 
 
@@ -118,18 +122,23 @@ try:
         if cv2.waitKey(5) == ord('q') or not ret:
             break
         
+        diff,thresh = findBackground(frame2)
         
-        dilate = processImages(frame1,frame2)
+        
+        #it = 5, no.ones(3,3)
+        #opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8()), iterations = 1)
+        
+        closing = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, np.ones((2, 2), np.uint8()), iterations = 5)
+        dilate = cv2.dilate(closing, np.ones((3, 3), np.uint8()))
          
         contours, _ = cv2.findContours(dilate, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
          
         for contour in contours:
             
-            
             draw_lines(xd,frame1)
             (x, y, w, h) = cv2.boundingRect(contour)
             
-            if cv2.contourArea(contour) < 900:
+            if cv2.contourArea(contour) < 480:
                 continue
             
             
