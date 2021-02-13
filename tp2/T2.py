@@ -22,7 +22,7 @@ def processImages(frame1,frame2):
 
     #blur = cv2.GaussianBlur(gray, (9,9), 0)
     _, thresh = cv2.threshold(blur, 25, 255, cv2.THRESH_BINARY)
-    dilated = cv2.dilate(thresh, None, iterations=20)
+    dilated = cv2.dilate(thresh, None, iterations=8)
 
     return dilated
 
@@ -117,11 +117,19 @@ try:
         contours, _ = cv2.findContours(dilate, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
          
         for contour in contours:
+            
+            
             draw_lines(xd,frame1)
             (x, y, w, h) = cv2.boundingRect(contour)
             
+            if cv2.contourArea(contour) < 900:
+                continue
+            
+            
             pos_x = int(x+w/2)
             pos_y = int(y+h/2)
+            
+            print (w/h)
             
             
             #RETORNA O TIPO DO OBJETO
