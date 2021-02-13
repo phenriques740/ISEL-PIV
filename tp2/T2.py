@@ -106,6 +106,8 @@ try:
         
     while cap.isOpened():
         
+        
+        
         if cv2.waitKey(5) == ord('q') or not ret:
             break
         
@@ -115,7 +117,7 @@ try:
         contours, _ = cv2.findContours(dilate, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
          
         for contour in contours:
-             
+            draw_lines(xd,frame1)
             (x, y, w, h) = cv2.boundingRect(contour)
             
             pos_x = int(x+w/2)
@@ -143,16 +145,7 @@ try:
                 xd.append((2,pos_x,pos_y))
             
            
-            
-            
-            draw_lines(xd,frame1)
-                
-        
-            
-     
- 
-        
-            
+        draw_lines(xd,frame1)
             
         image = cv2.resize(frame1, (1280,720))
         
