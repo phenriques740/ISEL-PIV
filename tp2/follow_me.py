@@ -1,8 +1,16 @@
-import cv2 
+import cv2 as cv2
 import numpy as np
 
-filePath = 'estacionamento_cut.mov'
+filePath = 'camera1.mov'
 cap = cv2.VideoCapture(filePath)
+
+'''
+def classificador(boundBox):
+    
+    if (boundBox.w==20):
+        do something
+'''
+
 
 try:
     ret, frame1 = cap.read()
@@ -24,6 +32,9 @@ try:
             cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 255, 0), 2)
             cv2.putText(frame1, "Status: {}".format('Movement'), (10, 20), cv2.FONT_HERSHEY_SIMPLEX,
                         1, (0, 0, 255), 3)
+
+            
+            
         #cv2.drawContours(frame1, contours, -1, (0, 255, 0), 2)
     
         image = cv2.resize(frame1, (1280,720))
