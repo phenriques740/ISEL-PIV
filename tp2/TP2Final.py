@@ -412,7 +412,11 @@ class RunVideo():
             f, axarr = plt.subplots(1,2)
         
         
-            idx = self.classifier.findClosestObject(x, y, 0,None)
+            idx_carro = self.classifier.findClosestObject(x, y, 0,None)
+            idx_pessoa = self.classifier.findClosestObject(x, y, 1,None)
+            idx_outro = self.classifier.findClosestObject(x, y, 2,None)
+            
+            idx = max((idx_carro, idx_pessoa, idx_outro))
             
             if(idx !=False):
                 obj = self.classifier.getClassifiedObject(idx)
