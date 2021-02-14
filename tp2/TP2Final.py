@@ -6,8 +6,6 @@ from time import time
 
  
 class drawStuff():
-    
-    
     def draw_rectangles(self,x,y,w,h,objClassified,objId,frame1):
             
          if (objClassified==0):
@@ -53,13 +51,13 @@ class drawStuff():
                 
                 
 class ClassifiedObject():
-    
      def __init__(self, typeObj,posX,posY,identifier):
         
         self.__typeObj = typeObj
         self.__posX = posX
         self.__posY = posY
         self.__identifier = identifier
+        
         
         self.objTime = time()
         
@@ -179,22 +177,10 @@ class ClassifiedObjects():
         
        
         idObj = self.__counter
-
-        if (objType ==0):
-            
-            obj = ClassifiedObject(0,posX,posY,idObj)
-            self.addToList(obj)
-            
         
-        if (objType ==1):
-            
-            obj = ClassifiedObject(1,posX,posY,idObj)
-            self.addToList(obj)
         
-        if (objType ==2):
-            
-            obj = ClassifiedObject(2,posX,posY,idObj)
-            self.addToList(obj)
+        obj = ClassifiedObject(objType, posX, posY, idObj)
+        self.addToList(obj)
         
         self.__counter = self.__counter+1
         
@@ -322,8 +308,7 @@ class RunVideo():
                 print("Error opening video stream or file")
                 
             while self.cap.isOpened():
-
-                
+                    
                 if cv2.waitKey(5) == ord('q') or not ret:
                     break
                 
@@ -367,19 +352,7 @@ class RunVideo():
                         #drawS = drawStuff(frame1)
                         drawS.draw_rectangles(x,y,w,h,objClassType,objId,frame1)
 
-
-                        if objClassType ==0:
-                            
-                            xd.append((0,pos_x,pos_y))
-                            
-                        if objClassType ==1:
-                            
-                            xd.append((1,pos_x,pos_y))
-                            
-                        if objClassType ==2:
-                            
-                            xd.append((2,pos_x,pos_y))
-                    
+                        xd.append((objClassType, pos_x, pos_y))
                
                 drawS.draw_lines(xd,frame1)
                     
@@ -403,13 +376,16 @@ class RunVideo():
              self.cap.release()
     
 
+def doHistFromCars():
+    pass
+
 if __name__ == '__main__':
     
     filePath = 'camera1.mov'
     filePathDuarte = 'C:/Users/duart/OneDrive/Ambiente de Trabalho/ISEL/VIDEO/camera1.mov'
     
     
-    runV = RunVideo(filePathDuarte)
+    runV = RunVideo(filePath)
     runV.doRun()
 
 
