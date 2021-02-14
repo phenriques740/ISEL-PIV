@@ -3,7 +3,8 @@ import numpy as np
 import collections
 import math
 from time import time
-
+from matplotlib import pyplot as plt
+import traceback
  
 class drawStuff():
     def draw_rectangles(self,x,y,w,h,objClassified,objId,frame1):
@@ -51,14 +52,15 @@ class drawStuff():
                 
                 
 class ClassifiedObject():
-     def __init__(self, typeObj,posX,posY,identifier):
+     def __init__(self, typeObj,posX,posY,identifier, first_img):
         
         self.__typeObj = typeObj
         self.__posX = posX
         self.__posY = posY
         self.__identifier = identifier
         
-        
+        self.__hist = self.__create_hist(first_img)
+        self.__first_img = first_img
         self.objTime = time()
         
         
@@ -99,9 +101,18 @@ class ClassifiedObject():
      def alive(self):
         return self.tClock() < 6
     
+     def getHist(self):
+        return self.__hist
     
-    
+     def get_first_img(self):
+        return self.__first_img
 
+     def __create_hist(self, objImg):
+        hist_b = cv2.calcHist(objImg, [0], None, [256], (0,256), False)
+        hist_g = cv2.calcHist(objImg, [1], None, [256], (0,256), False)
+        hist_r = cv2.calcHist(objImg, [2], None, [256], (0,256), False)
+        return (hist_b, hist_g, hist_r)
+    
 class ClassifiedObjects():
     
     def __init__(self):
@@ -109,8 +120,11 @@ class ClassifiedObjects():
         self.__listClassifiedObjects = []
         self.__counter = 0
         
-        
-        
+    
+    def getClassifiedObject(self, idx):
+        if(idx == False):
+            return -1
+        return self.__listClassifiedObjects[idx]
     def addToList(self,classifiedObject):
         
         self.__listClassifiedObjects.append(classifiedObject)
@@ -124,8 +138,13 @@ class ClassifiedObjects():
         return math.sqrt(math.pow((x1 - x2), 2) + math.pow((y1 - y2), 2))
     
     
+    def __create_hist(self, objImg):
+        hist_b = cv2.calcHist(objImg, [0], None, [256], (0,256), False)
+        hist_g = cv2.calcHist(objImg, [1], None, [256], (0,256), False)
+        hist_r = cv2.calcHist(objImg, [2], None, [256], (0,256), False)
+        return (hist_b, hist_g, hist_r)
     
-    def findClosestObject(self,posX,posY,typeObj):
+    def findClosestObject(self,posX,posY,typeObj,objImg=None):
         
         if (len(self.__listClassifiedObjects) <1):
             
@@ -145,15 +164,24 @@ class ClassifiedObjects():
                     if self.__listClassifiedObjects[i].getType() ==typeObj:
                     
                         c=1
-                        #if not self.__listClassifiedObjects[i].dead():
-                    
-                        x = self.__listClassifiedObjects[i].getposX()
-                            
-                        y = self.__listClassifiedObjects[i].getposY()
+                        obj = self.__listClassifiedObjects[i]
+                        x = obj.getposX()
+                        y = obj.getposY()
                         
-                        dist = self.euclideanDistance(posX,x,posY,y)
-                        dicDist[i] = dist
+                        if(objImg is not None):
+                            objImg = cv2.resize(objImg, (obj.get_first_img().shape[0], obj.get_first_img().shape[1]))
+                            local_hist = self.__create_hist(objImg)
                             
+                            dist = self.euclideanDistance(posX,x,posY,y)*0.7 \
+                                +cv2.compareHist(obj.getHist()[0],local_hist[0], cv2.HISTCMP_BHATTACHARYYA)*0.1\
+                                +cv2.compareHist(obj.getHist()[1],local_hist[1], cv2.HISTCMP_BHATTACHARYYA)*0.1\
+                                +cv2.compareHist(obj.getHist()[2],local_hist[2], cv2.HISTCMP_BHATTACHARYYA)*0.1
+                            dicDist[i] = dist
+                        else:
+                            dist =  self.euclideanDistance(posX,x,posY,y)
+                            dicDist[i] = dist
+
+
             if (c==0):
                 return False
             
@@ -173,13 +201,13 @@ class ClassifiedObjects():
         #arrDistances = [self.euclideanDistance(posX,i.getposX,posY,i.getposY) for i in self.__listClassifiedObjects]
    
         
-    def createClassifiedObject(self, objType,posX,posY):
+    def createClassifiedObject(self, objType,posX,posY, histogram):
         
        
         idObj = self.__counter
         
         
-        obj = ClassifiedObject(objType, posX, posY, idObj)
+        obj = ClassifiedObject(objType, posX, posY, idObj, histogram)
         self.addToList(obj)
         
         self.__counter = self.__counter+1
@@ -195,28 +223,27 @@ class ClassifiedObjects():
        # left = x < 10
        # right = x > 1270
        
-       
-    def classify(self,width,height,area,posX,posY):
+
+    
+    def classify(self,width,height,area,posX,posY,objImg):
     
         #self.checkDeadClassifiedObjects()
         
         ratio = round(width / height,3)
-            
-            
+
+        
         if((ratio) >= 1.10 and area > 1500 and self.check_border(posX)):
             
-            
-            if (self.findClosestObject(posX,posY,0)!=False):
-                
-                ind = self.findClosestObject(posX,posY,0)
+            ind = self.findClosestObject(posX,posY,0,objImg)
 
+            if (ind!=False):
                 self.__listClassifiedObjects[ind].updateType(0)
                 self.__listClassifiedObjects[ind].updateCoords(posX, posY)
                 
                 return self.__listClassifiedObjects[ind]
                 
             else:
-                self.createClassifiedObject(0,posX,posY)
+                self.createClassifiedObject(0,posX,posY, objImg)
                 
                 return self.__listClassifiedObjects[-1]
             
@@ -225,8 +252,8 @@ class ClassifiedObjects():
 
         if((ratio) >= 0.34 and ratio <= 0.80 and area < 5000 and self.check_border(posX)):
             
-                
-            if (self.findClosestObject(posX,posY,1)!=False):
+        
+            if (self.findClosestObject(posX,posY,1, objImg)!=False):
                     
                ind = self.findClosestObject(posX,posY,1)
                
@@ -236,8 +263,7 @@ class ClassifiedObjects():
                return self.__listClassifiedObjects[ind]
                     
             else:
-                self.createClassifiedObject(1,posX,posY)
-                
+                self.createClassifiedObject(1,posX,posY,  objImg)
                 return self.__listClassifiedObjects[-1]
             
             
@@ -245,7 +271,7 @@ class ClassifiedObjects():
         if((ratio) > 0.80 and (ratio) < 1.10 and area>850 and self.check_border(posX) ):
             
      
-           if (self.findClosestObject(posX,posY,2)!=False):
+           if (self.findClosestObject(posX,posY,2, objImg)!=False):
                     
                ind = self.findClosestObject(posX,posY,2)
                
@@ -255,7 +281,7 @@ class ClassifiedObjects():
                
                return self.__listClassifiedObjects[ind]
            else:
-               self.createClassifiedObject(2,posX,posY)
+               self.createClassifiedObject(2,posX,posY, objImg)
                return self.__listClassifiedObjects[-1]
             
            
@@ -272,7 +298,7 @@ class RunVideo():
 
         self.cap = cv2.VideoCapture(filePath)
         self.backgroundSub = cv2.createBackgroundSubtractorMOG2(history =500,varThreshold = 22, detectShadows = True)
-
+        self.classifier = ClassifiedObjects()
 
 #backgroundSub = cv2.createBackgroundSubtractorMOG2(128,cv2.THRESH_BINARY,1)
 
@@ -292,9 +318,9 @@ class RunVideo():
     
     def doRun(self):
         
-        classObjects = ClassifiedObjects()
-        
-
+        classObjects = self.classifier
+        cv2.namedWindow("feed")
+        cv2.setMouseCallback("feed",self.doHistFromObject)
         xd = collections.deque([])
         try:
             ret, frame1 = self.cap.read()
@@ -307,10 +333,11 @@ class RunVideo():
             if (self.cap.isOpened()== False):
                 print("Error opening video stream or file")
                 
-            while self.cap.isOpened():
-                    
-                if cv2.waitKey(5) == ord('q') or not ret:
+            while self.cap.isOpened():                
+                key = cv2.waitKey(5) & 0xFF
+                if key == ord('q') or not ret:
                     break
+            
                 
                 diff,thresh = self.findBackground(frame2)
                 
@@ -335,7 +362,8 @@ class RunVideo():
                     pos_y = int(y+h/2)
                     
                     
-                    objClass = classObjects.classify(w, h, cv2.contourArea(contour), x, y)
+                    objClass = classObjects.classify(w, h, cv2.contourArea(contour), 
+                                                     x, y, frame1[y:y+h+2, x:x+w+2])
                     drawS = drawStuff()
                     
                     if (objClass != False):
@@ -355,9 +383,7 @@ class RunVideo():
                         xd.append((objClassType, pos_x, pos_y))
                
                 drawS.draw_lines(xd,frame1)
-                    
-                image = cv2.resize(frame1, (1280,720))
-                
+                                    
                 cv2.imshow("dilated" , dilate)
                 cv2.imshow("feed", frame1)
                  
@@ -372,12 +398,33 @@ class RunVideo():
           
         except Exception as e:
              print(e)
+             traceback.print_exc() 
              cv2.destroyAllWindows()
              self.cap.release()
     
 
-def doHistFromCars():
-    pass
+    def doHistFromObject(self, event,x,y,flags,param):
+        
+        
+        if event == cv2.EVENT_LBUTTONDOWN:
+            print('click', x, y)
+            
+            f, axarr = plt.subplots(1,2)
+        
+        
+            idx = self.classifier.findClosestObject(x, y, 0,None)
+            
+            if(idx !=False):
+                obj = self.classifier.getClassifiedObject(idx)
+                print('id carro ' , idx)
+                
+                color = ('b','g','r')
+                for i,col in enumerate(color):
+                    axarr[0].plot(obj.getHist()[i],color = col)
+                    axarr[0].axis(xmin=0,xmax=256)
+    
+                    axarr[1].imshow(obj.get_first_img())
+                plt.show()
 
 if __name__ == '__main__':
     
