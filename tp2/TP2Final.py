@@ -99,7 +99,7 @@ class ClassifiedObject():
         return time() - self.objTime
     
      def alive(self):
-        return self.tClock() < 5
+        return self.tClock() < 6
     
     
     
@@ -138,6 +138,7 @@ class ClassifiedObjects():
             dicDist = {}
             
             c=0
+            
             for i in range (len(self.__listClassifiedObjects)):
                 
              
@@ -207,11 +208,8 @@ class ClassifiedObjects():
             return True
        # left = x < 10
        # right = x > 1270
-    
-        
-        
-    
-    
+       
+       
     def classify(self,width,height,area,posX,posY):
     
         #self.checkDeadClassifiedObjects()
