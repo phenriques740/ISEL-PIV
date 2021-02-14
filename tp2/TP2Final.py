@@ -7,38 +7,35 @@ from time import time
  
 class drawStuff():
     
-    def __init__(self, frame):
-        
-        self.frame1 = frame
-
-    def draw_rectangles(self,x,y,w,h,objClassified,objId):
+    
+    def draw_rectangles(self,x,y,w,h,objClassified,objId,frame1):
             
          if (objClassified==0):
              
         
-             cv2.rectangle(self.frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)
-             cv2.putText(self.frame1, str("Carro"),(x,y-10) , cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
+             cv2.rectangle(frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)
+             cv2.putText(frame1, str("Carro"),(x,y-10) , cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
              
-             cv2.putText(self.frame1, str(objId),(x+20,y-30) , cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
+             cv2.putText(frame1, str(objId),(x+20,y-30) , cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
         
          if (objClassified==1):
              
         
-             cv2.rectangle(self.frame1, (x, y), (x + w, y + h), (0, 0, 255), 2)
-             cv2.putText(self.frame1, str("Pessoa"),(x,y-10) , cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)    
+             cv2.rectangle(frame1, (x, y), (x + w, y + h), (0, 0, 255), 2)
+             cv2.putText(frame1, str("Pessoa"),(x,y-10) , cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)    
                     
-             cv2.putText(self.frame1, str(objId),(x+20,y-30) , cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
+             cv2.putText(frame1, str(objId),(x+20,y-30) , cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
 
          if (objClassified==2):
              
         
-            cv2.rectangle(self.frame1, (x, y), (x + w, y + h), (255, 0, 0), 2)
-            cv2.putText(self.frame1, str("Outro"),(x,y-10) , cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
+            cv2.rectangle(frame1, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            cv2.putText(frame1, str("Outro"),(x,y-10) , cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
             
-            cv2.putText(self.frame1, str(objId),(x+20,y-30) , cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
+            cv2.putText(frame1, str(objId),(x+20,y-30) , cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
 
 
-    def draw_lines(self,points):
+    def draw_lines(self,points,frame1):
         
         if(len(points)>0):
             
@@ -46,13 +43,13 @@ class drawStuff():
                 
                 if (points[i][0] ==0):
                     
-                    cv2.circle(self.frame1,(points[i][1],points[i][2]),1,(0, 255, 0),1)
+                    cv2.circle(frame1,(points[i][1],points[i][2]),1,(0, 255, 0),1)
                 if (points[i][0] ==1):
                    
-                    cv2.circle(self.frame1,(points[i][1],points[i][2]),1,(0, 0, 255),1)
+                    cv2.circle(frame1,(points[i][1],points[i][2]),1,(0, 0, 255),1)
                 if (points[i][0] ==2):
         
-                    cv2.circle(self.frame1,(points[i][1],points[i][2]),1,(255, 0, 0),1)
+                    cv2.circle(frame1,(points[i][1],points[i][2]),1,(255, 0, 0),1)
                 
                 
 class ClassifiedObject():
@@ -130,7 +127,7 @@ class ClassifiedObjects():
     
     
     
-    def findClosestObject(self,posX,posY):
+    def findClosestObject(self,posX,posY,typeObj):
         
         if (len(self.__listClassifiedObjects) <1):
             
@@ -145,6 +142,8 @@ class ClassifiedObjects():
                 
              
                 if  self.__listClassifiedObjects[i].alive():
+                    
+                    if self.__listClassifiedObjects[i].getType() ==typeObj:
                     
                         c=1
                         #if not self.__listClassifiedObjects[i].dead():
@@ -198,16 +197,17 @@ class ClassifiedObjects():
         
         self.__counter = self.__counter+1
         
- 
+    
     def check_border(self,posX):
         
         #1280,720
-        if (posX < 30 or posX > 1240):
+        if (posX < 10 or posX >1270):
             return False
         else:
             return True
        # left = x < 10
        # right = x > 1270
+    
         
         
     
@@ -222,9 +222,9 @@ class ClassifiedObjects():
         if((ratio) >= 1.10 and area > 1500 and self.check_border(posX)):
             
             
-            if (self.findClosestObject(posX,posY)!=False):
+            if (self.findClosestObject(posX,posY,0)!=False):
                 
-                ind = self.findClosestObject(posX,posY)
+                ind = self.findClosestObject(posX,posY,0)
 
                 self.__listClassifiedObjects[ind].updateType(0)
                 self.__listClassifiedObjects[ind].updateCoords(posX, posY)
@@ -242,9 +242,9 @@ class ClassifiedObjects():
         if((ratio) >= 0.34 and ratio <= 0.80 and area < 5000 and self.check_border(posX)):
             
                 
-            if (self.findClosestObject(posX,posY)!=False):
+            if (self.findClosestObject(posX,posY,1)!=False):
                     
-               ind = self.findClosestObject(posX,posY)
+               ind = self.findClosestObject(posX,posY,1)
                
                self.__listClassifiedObjects[ind].updateType(1)
                self.__listClassifiedObjects[ind].updateCoords(posX, posY)
@@ -258,12 +258,12 @@ class ClassifiedObjects():
             
             
                         
-        if((ratio) > 0.80 and (ratio) < 1.10 and area>850 and self.check_border(posX)):
+        if((ratio) > 0.80 and (ratio) < 1.10 and area>850 and self.check_border(posX) ):
             
      
-           if (self.findClosestObject(posX,posY)!=False):
+           if (self.findClosestObject(posX,posY,2)!=False):
                     
-               ind = self.findClosestObject(posX,posY)
+               ind = self.findClosestObject(posX,posY,2)
                
                self.__listClassifiedObjects[ind].updateType(2)
                
@@ -290,11 +290,11 @@ class RunVideo():
         self.backgroundSub = cv2.createBackgroundSubtractorMOG2(history =500,varThreshold = 22, detectShadows = True)
 
 
-
 #backgroundSub = cv2.createBackgroundSubtractorMOG2(128,cv2.THRESH_BINARY,1)
 
     def findBackground(self,frame2):
-    
+       
+        
         gray = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
     
         blurm = cv2.medianBlur(gray, 3)
@@ -309,9 +309,6 @@ class RunVideo():
     def doRun(self):
         
         classObjects = ClassifiedObjects()
-        
-        
-        canDraw = 0
         
 
         xd = collections.deque([])
@@ -356,6 +353,7 @@ class RunVideo():
                     
                     
                     objClass = classObjects.classify(w, h, cv2.contourArea(contour), x, y)
+                    drawS = drawStuff()
                     
                     if (objClass != False):
                         
@@ -368,10 +366,10 @@ class RunVideo():
                         
                       #DRAW STUFF
                          
-                        drawS = drawStuff(frame1)
-                        drawS.draw_rectangles(x,y,w,h,objClassType,objId)
+                        #drawS = drawStuff(frame1)
+                        drawS.draw_rectangles(x,y,w,h,objClassType,objId,frame1)
 
-                        canDraw=1
+
                         if objClassType ==0:
                             
                             xd.append((0,pos_x,pos_y))
@@ -384,8 +382,8 @@ class RunVideo():
                             
                             xd.append((2,pos_x,pos_y))
                     
-                if (canDraw==1):
-                    drawS.draw_lines(xd)
+               
+                drawS.draw_lines(xd,frame1)
                     
                 image = cv2.resize(frame1, (1280,720))
                 
